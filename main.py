@@ -66,6 +66,7 @@ def read_metadata(pdf_file: str):
     metadata = reader.metadata
     # options:
         # title, author, subject, creator, producer, creation_date, modification_date
+    # print(metadata)
 
     if not metadata:
         # This is where I need to figure out what to do with the lack of metadata
@@ -78,12 +79,47 @@ def read_metadata(pdf_file: str):
     # Currently I don't think I actually need this, but I'm going to leave this here in case I need it late
     
     # Most of these papers will have more than one author; if there are 3 or more, I want to change it to first author et al.
-    authors = metadata.author
+    # also looks like they are seperated by a semicolon right now and listed by whole name
+    authors = tidy_authors(metadata.author)
+    
+        
+
+    # need to pull just the year from the date object
+    date = metadata.creation_date
+
+    # need to escape any non-permitted characters in the title - regex?
+    title = metadata.title
 
 
-    new_title = "{authors} {metadata.creation_date} {metadata.title}"
+    new_title = f"({authors})__({date})__{title}"
     print(new_title)
 
-    
 
+def tidy_authors(authors: str):
+    '''
+    Most of these papers will have more than one author; if there are 3 or more, I want to change it to first author et al.
+    also looks like they are seperated by a semicolon right now and listed by whole name
+    Should return the authors in last name, first name form
+    If there are three authors or more, then return (first author et al)
+    '''
+
+    split_authors = authors.split(";")
+    if len(split_authors) == 1:
+        # if there is only one author, then split based on the space
+        single = split_authors[0].split(" ")
+        return f"{single[1]}_{single[0]}"
+
+    out_authors = []
+
+    for author in split_authors:
+        out = author.split(" ")
+        out_authors.append({out[1]})
+
+    if len(out_authors) >= 3:
+        return f"{out_authors[0]}_etal"
+
+    return "_".join(out_authors)
+
+    
+read_metadata("./test_pdfs/Wu_Wang_2009_extended_depth_of_focus_image_for_phytolith_analysis.pdf")
     
